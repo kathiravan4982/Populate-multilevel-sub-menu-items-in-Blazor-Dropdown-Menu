@@ -13,6 +13,8 @@
 </SfDropDownButton>
 
 @code {
+    [Inject]
+    IJSRuntime JS { get; set; }
     SfDropDownButton FileButton;
     SfContextMenu<ContextMenuItemModel> ContextMenu;
     public bool isClose = false;
@@ -68,9 +70,10 @@
                 new   ContextMenuItemModel { Separator = true},
                 new   ContextMenuItemModel { Id ="FileMenuItemsPrint",Content = "Print" }
             };
-    public void OnMenuCreated()
+    public async Task OnMenuCreated()
     {
-        ContextMenu.OpenAsync();
+        var rect = await JS.InvokeAsync<double[]>("eval", "const r = document.getElementById('btnFileMenu').getBoundingClientRect(); return [r.left, r.bottom];");
+        await ContextMenu.OpenAsync(rect[0], rect[1]);
     }
     public void Selected(MenuEventArgs<ContextMenuItemModel> args)
     {
