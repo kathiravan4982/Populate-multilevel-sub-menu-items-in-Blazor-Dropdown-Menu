@@ -1,4 +1,5 @@
 @page "/"
+@rendermode InteractiveServer
 
 <SfDropDownButton @ref="FileButton" id="btnFileMenu" Content="File" CssClass="e-dropDown-button">
     <ChildContent>
@@ -13,8 +14,6 @@
 </SfDropDownButton>
 
 @code {
-    [Inject]
-    IJSRuntime JS { get; set; }
     SfDropDownButton FileButton;
     SfContextMenu<ContextMenuItemModel> ContextMenu;
     public bool isClose = false;
@@ -72,8 +71,7 @@
             };
     public async Task OnMenuCreated()
     {
-        var rect = await JS.InvokeAsync<double[]>("eval", "const r = document.getElementById('btnFileMenu').getBoundingClientRect(); return [r.left, r.bottom];");
-        await ContextMenu.OpenAsync(rect[0], rect[1]);
+        await ContextMenu.OpenAsync(null, null);
     }
     public void Selected(MenuEventArgs<ContextMenuItemModel> args)
     {
