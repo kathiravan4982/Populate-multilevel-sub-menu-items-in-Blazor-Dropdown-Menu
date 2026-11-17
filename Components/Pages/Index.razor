@@ -1,8 +1,9 @@
-﻿@page "/"
+@page "/"
+@rendermode InteractiveServer
 
 <SfDropDownButton @ref="FileButton" id="btnFileMenu" Content="File" CssClass="e-dropDown-button">
     <ChildContent>
-        <DropDownButtonEvents OnClose="@DropDownButtonClose"></DropDownButtonEvents>
+        <DropDownButtonEvents Opened="@DropDownButtonOpened" OnOpen="@DropDownButtonOpen" OnClose="@DropDownButtonClose"></DropDownButtonEvents>
     </ChildContent>
     <PopupContent>
         <SfContextMenu @ref="ContextMenu" Items="FileMenuItems" TValue="ContextMenuItemModel" ShowItemOnClick="true">
@@ -16,17 +17,35 @@
     SfDropDownButton FileButton;
     SfContextMenu<ContextMenuItemModel> ContextMenu;
     public bool isClose = false;
+    private bool allowClose = false;
 
+    private void DropDownButtonOpen(BeforeOpenCloseMenuEventArgs args)
+    {
+        isClose = false;
+        allowClose = false;
+    }
+    private async Task DropDownButtonOpened(OpenCloseMenuEventArgs args)
+    {
+        // Created fires only once, so re-open the menu every time the popup opens.
+        if (ContextMenu != null)
+        {
+            await ContextMenu.OpenAsync(null, null);
+        }
+    }
     private void DropDownButtonClose(BeforeOpenCloseMenuEventArgs args)
     {
-        args.Cancel = true;
+        // Keep the popup open for menu clicks; close only when explicitly requested.
+        args.Cancel = !allowClose;
+        allowClose = false;
     }
     private void BeforeClose(BeforeOpenCloseMenuEventArgs<ContextMenuItemModel> args)
     {
         if (!isClose)
         {
+            allowClose = true;
             FileButton.Toggle();
         }
+        isClose = false;
     }
     public class ContextMenuItemModel
     {
@@ -42,8 +61,8 @@
                         new   ContextMenuItemModel { Content="Left" },
                         new   ContextMenuItemModel { Content="Right" },
                         new   ContextMenuItemModel { Content="Center" },
-                        new   ContextMenuItemModel { Content="Top"},
                         new   ContextMenuItemModel { Content="Bottom" },
+                        new   ContextMenuItemModel { Content="Top"},
                         new   ContextMenuItemModel { Content="Middle"}
                     }},
                 new   ContextMenuItemModel {Id ="FileMenuItemsOpen", Content = "Open" },
@@ -68,9 +87,9 @@
                 new   ContextMenuItemModel { Separator = true},
                 new   ContextMenuItemModel { Id ="FileMenuItemsPrint",Content = "Print" }
             };
-    public void OnMenuCreated()
+    public async Task OnMenuCreated()
     {
-        ContextMenu.Open();
+        await ContextMenu.OpenAsync(null, null);
     }
     public void Selected(MenuEventArgs<ContextMenuItemModel> args)
     {
